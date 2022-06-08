@@ -11,13 +11,19 @@ namespace Infrastructure.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var messagingConfig = configuration.GetSection("messaging").Get<MessagingOptions>((a) => a.BindNonPublicProperties = true);
+            var messagingConfig = configuration
+                .GetSection("messaging")
+                .Get<MessagingOptions>((a) => a.BindNonPublicProperties = true);
 
             services.AddMassTransit(configurator =>
             {
                 configurator.UsingRabbitMq((context, config) =>
                 {
-                    config.Host(messagingConfig.Host);
+                    config.Host(messagingConfig.Host, configure =>
+                    {
+                        configure.Username(messagingConfig.User);
+                        configure.Password(messagingConfig.Password);
+                    });
                 });
             });
 

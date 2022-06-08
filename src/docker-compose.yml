@@ -1,13 +1,11 @@
-﻿version: '3'
+version: '3.4'
+
 services:
-  web:
-    container_name: 'userzoom-test'
-    image: 'userzoom-test'
+  infrastructure.webapi:
+    image: ${DOCKER_REGISTRY-}infrastructurewebapi
     build:
       context: .
-      dockerfile: Dockerfile
-    ports:
-      - '8090:80'
+      dockerfile: Infrastructure.WebApi/Dockerfile
     depends_on:
       - 'postgres'
       - 'rabbitmq'

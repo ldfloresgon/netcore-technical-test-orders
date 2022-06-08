@@ -1,6 +1,7 @@
-﻿using Core.Persistence;
+﻿using Core.Domain.Orders;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -14,13 +15,26 @@ namespace Infrastructure.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var config = configuration.GetSection("postgresql").Get<PostgreSqlOptions>((a) => a.BindNonPublicProperties = true);
+            var config = configuration
+                .GetSection("postgresql")
+                .Get<PostgreSqlOptions>((a) => a.BindNonPublicProperties = true);
 
-            services.AddTransient<IDbConnection>(_ => new NpgsqlConnection(config.ConnectionString));
+            services
+                .AddScoped<IOrderRepository, OrderRepository>()
+                .AddEntityFrameworkNpgsql()
+                .AddDbContext<DataBaseContext>(opt =>
+                    {
+                        opt.UseNpgsql(config.ConnectionString);
+                    })
+            ;
 
-            services.AddSingleton<IOrderAggregateRootRepository, OrdersAggregateRootRepository>();
+            var dataBaseContext = services
+                .BuildServiceProvider()
+                .GetRequiredService<DataBaseContext>();
 
-            return (services);
+            dataBaseContext.Database.EnsureCreated();
+
+            return services;
         }
     }
 }
