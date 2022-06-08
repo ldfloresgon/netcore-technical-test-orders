@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Infrastructure.WebApi.Models
+namespace Infrastructure.WebApi.Controllers.Orders
 {
-    public class CreateOrderApiResponse
+    public class Request
     {
         public Guid Id { get; set; }
 
-        public IDictionary<string, decimal> Items { get; set; }
+        public Dictionary<string, int> Products { get; set; }
     }
 }

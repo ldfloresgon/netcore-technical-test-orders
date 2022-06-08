@@ -1,20 +1,13 @@
-using Core.Handlers.Commands;
+using Core.Domain.Orders.Handlers;
 using Infrastructure.DependencyInjection;
+using Infrastructure.Messaging;
+using Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Npgsql;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace TechnicalTest
 {
@@ -30,10 +23,16 @@ namespace TechnicalTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-            services.AddInfrastructureRepositories(this.Configuration);
-            services.AddMessaging(this.Configuration);
-            services.AddMediatR(typeof(OrderCommandHandler).Assembly);
+            services
+                .AddControllers()
+                .Services
+                .AddSwaggerGen()
+                .AddInfrastructureRepositories(Configuration)
+                .AddMessaging(Configuration)
+                .AddMediatR(typeof(CreateOrderCommandHandler).Assembly)
+                .AddHostedService<PublishMessageHandler>()
+            ;
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,7 +40,7 @@ namespace TechnicalTest
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseDeveloperExceptionPage();                
             }
 
             app.UseHttpsRedirection();
@@ -49,6 +48,11 @@ namespace TechnicalTest
             app.UseRouting();
 
             app.UseAuthorization();
+
+
+            app
+                 .UseSwagger()
+                 .UseSwaggerUI();
 
             app.UseEndpoints(endpoints =>
             {
